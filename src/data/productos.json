@@ -1,0 +1,13 @@
+[
+  {
+    "id": "87af0920-0633-470f-9b16-a0318b5d9fe4",
+    "title": "Remera Negra",
+    "description": "Remera de algodón",
+    "code": "RM001",
+    "price": 2500,
+    "status": true,
+    "stock": 30,
+    "category": "ropa",
+    "thumbnails": []
+  }
+]
