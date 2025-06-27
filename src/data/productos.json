@@ -9,5 +9,16 @@
     "stock": 30,
     "category": "ropa",
     "thumbnails": []
+  },
+  {
+    "id": "4bc046aa-3772-4316-9d93-da8d709cba61",
+    "title": "Remera Roja",
+    "description": "Una remera roja",
+    "code": "2",
+    "price": 2500,
+    "stock": 30,
+    "category": "Remeras",
+    "thumbnails": [],
+    "status": true
   }
 ]
