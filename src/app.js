@@ -7,6 +7,12 @@ import { fileURLToPath } from 'url'
 import productsRouter from './routes/products.routes.js'
 import cartsRouter from './routes/carts.routes.js'
 import viewsRouter from './routes/views.routes.js'
+import mongoose from 'mongoose'
+import Product from './models/Product.js'
+
+mongoose.connect('mongodb://localhost:27017/ecommerce')
+  .then(() => console.log('Conectado a MongoDB'))
+  .catch(err => console.error('Error al conectar a MongoDB:', err))
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -31,20 +37,14 @@ io.on('connection', (socket) => {
   console.log('Nuevo cliente conectado')
 
   socket.on('newProduct', async (data) => {
-    const { readJSON, writeJSON } = await import('./utils/fileManager.js')
-    const { randomUUID } = await import('crypto')
-    const products = await readJSON('productos.json')
-
-    const newProduct = {
-      id: randomUUID(),
-      ...data
-    }
-
-    products.push(newProduct)
-    await writeJSON('productos.json', products)
-
-    io.emit('updateProducts', products)
-  })
+  try {
+    await Product.create(data)
+    const allProducts = await Product.find().lean()
+    io.emit('updateProducts', allProducts)
+  } catch (error) {
+    console.error('Error al crear producto:', error)
+  }
+})
 })
 
 const PORT = 8080

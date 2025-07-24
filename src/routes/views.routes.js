@@ -1,16 +1,33 @@
 import { Router } from 'express'
-import { readJSON } from '../utils/fileManager.js'
+import Product from '../models/Product.js'
 
 const router = Router()
 
 router.get('/products', async (req, res) => {
-  const products = await readJSON('productos.json')
-  res.render('home', { products })
-})
+  const { limit = 3, page = 1, sort, query } = req.query
 
-router.get('/realtimeproducts', async (req, res) => {
-  const products = await readJSON('productos.json')
-  res.render('realTimeProducts', { products })
+  const options = {
+    limit: parseInt(limit),
+    page: parseInt(page),
+    sort: sort === 'asc' ? { price: 1 } : sort === 'desc' ? { price: -1 } : undefined,
+    lean: true
+  }
+
+  const filter = query ? { category: query } : {}
+
+  const result = await Product.paginate(filter, options)
+
+  res.render('home', {
+    products: result.docs,
+    page: result.page,
+    totalPages: result.totalPages,
+    hasPrevPage: result.hasPrevPage,
+    hasNextPage: result.hasNextPage,
+    prevPage: result.prevPage,
+    nextPage: result.nextPage,
+    limit: limit,
+    sort: sort
+  })
 })
 
 export default router

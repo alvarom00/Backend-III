@@ -10,6 +10,19 @@
       </li>
     {{/each}}
   </ul>
+
+<p>Página {{page}} de {{totalPages}}</p>
+
+<div>
+  {{#if hasPrevPage}}
+    <a href="/products?page={{prevPage}}&limit={{limit}}">Anterior</a>
+  {{/if}}
+
+  {{#if hasNextPage}}
+    <a href="/products?page={{nextPage}}&limit={{limit}}">Siguiente</a>
+  {{/if}}
+</div>
+
 {{else}}
   <p>No hay productos disponibles.</p>
 {{/if}}

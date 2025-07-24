@@ -1,86 +1,88 @@
 import { Router } from 'express'
-import { readJSON, writeJSON } from '../utils/fileManager.js'
-import { randomUUID } from 'crypto'
+import Product from '../models/Product.js'
 
 const router = Router()
-const FILE = 'productos.json'
 
-// GET /api/products?limit=
+// GET /api/products?limit=&page=&sort=&query=
 router.get('/', async (req, res) => {
-    const products = await readJSON(FILE)
-    const limit = parseInt(req.query.limit)
-    const result = isNaN(limit) ? products : products.slice(0, limit)
-    res.json({ status: 'success', payload: result })
+  try {
+    const { limit = 3, page = 1, sort, query } = req.query
+
+    const options = {
+      limit: parseInt(limit),
+      page: parseInt(page),
+      sort: sort === 'asc' ? { price: 1 } : sort === 'desc' ? { price: -1 } : undefined
+    }
+
+    const filter = query ? { category: query } : {}
+
+    const result = await Product.paginate(filter, options)
+
+    res.json({
+      status: 'success',
+      payload: result.docs,
+      totalPages: result.totalPages,
+      prevPage: result.prevPage,
+      nextPage: result.nextPage,
+      page: result.page,
+      hasPrevPage: result.hasPrevPage,
+      hasNextPage: result.hasNextPage,
+      prevLink: result.hasPrevPage ? `/api/products?page=${result.prevPage}&limit=${limit}` : null,
+      nextLink: result.hasNextPage ? `/api/products?page=${result.nextPage}&limit=${limit}` : null
+    })
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message })
+  }
 })
+
 
 // GET /api/products/:pid
 router.get('/:pid', async (req, res) => {
-    const products = await readJSON(FILE)
-    const product = products.find(p => p.id === req.params.pid)
+  try {
+    const product = await Product.findById(req.params.pid)
     if (!product) {
-        return res.status(404).json({ status: 'error', message: 'Producto no encontrado' })
+      return res.status(404).json({ status: 'error', message: 'Producto no encontrado' })
     }
     res.json({ status: 'success', payload: product })
+  } catch (err) {
+    res.status(400).json({ status: 'error', message: 'ID inválido' })
+  }
 })
 
 // POST /api/products
 router.post('/', async (req, res) => {
-    const {
-        title, description, code,
-        price, stock, category,
-        thumbnails = [], status = true
-    } = req.body
-
-    if (!title || !description || !code || price == null || stock == null || !category) {
-        return res.status(400).json({ status: 'error', message: 'Faltan campos obligatorios' })
-    }
-
-    const products = await readJSON(FILE)
-    const id = randomUUID()
-    const newProduct = {
-        id, title, description, code,
-        price, status, stock, category,
-        thumbnails
-    }
-
-    products.push(newProduct)
-    await writeJSON(FILE, products)
-    res.status(201).json({ status: 'success', payload: newProduct })
+  try {
+    const product = await Product.create(req.body)
+    res.status(201).json({ status: 'success', payload: product })
+  } catch (err) {
+    res.status(400).json({ status: 'error', message: err.message })
+  }
 })
 
 // PUT /api/products/:pid
 router.put('/:pid', async (req, res) => {
-    const pid = req.params.pid
-    const updates = req.body
-    const products = await readJSON(FILE)
-    const index = products.findIndex(p => p.id === pid)
-
-    if (index === -1) {
-        return res.status(404).json({ status: 'error', message: 'Producto no encontrado' })
+  try {
+    const product = await Product.findByIdAndUpdate(req.params.pid, req.body, { new: true })
+    if (!product) {
+      return res.status(404).json({ status: 'error', message: 'Producto no encontrado' })
     }
-
-    if (updates.id && updates.id !== pid) {
-        return res.status(400).json({ status: 'error', message: 'No se puede modificar el ID' })
-    }
-
-    products[index] = { ...products[index], ...updates }
-    await writeJSON(FILE, products)
-    res.json({ status: 'success', payload: products[index] })
+    res.json({ status: 'success', payload: product })
+  } catch (err) {
+    res.status(400).json({ status: 'error', message: 'ID inválido' })
+  }
 })
 
 // DELETE /api/products/:pid
 router.delete('/:pid', async (req, res) => {
-    const pid = req.params.pid
-    let products = await readJSON(FILE)
-    const exists = products.some(p => p.id === pid)
-
-    if (!exists) {
-        return res.status(404).json({ status: 'error', message: 'Producto no encontrado' })
+  try {
+    const result = await Product.findByIdAndDelete(req.params.pid)
+    if (!result) {
+      return res.status(404).json({ status: 'error', message: 'Producto no encontrado' })
     }
-
-    products = products.filter(p => p.id !== pid)
-    await writeJSON(FILE, products)
     res.json({ status: 'success', message: 'Producto eliminado' })
+  } catch (err) {
+    res.status(400).json({ status: 'error', message: 'ID inválido' })
+  }
 })
 
 export default router
