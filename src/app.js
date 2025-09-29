@@ -4,19 +4,19 @@ import { Server } from 'socket.io'
 import { engine } from 'express-handlebars'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import mongoose from 'mongoose'
+import dotenv from 'dotenv'
+import cookieParser from 'cookie-parser'
+import passport from 'passport'
+
 import productsRouter from './routes/products.routes.js'
 import cartsRouter from './routes/carts.routes.js'
 import viewsRouter from './routes/views.routes.js'
 import sessionRouterFactory from './routes/session.routes.js'
-import mongoose from 'mongoose'
 import Product from './models/Product.js'
-import cookieParser from 'cookie-parser'
-import passport from 'passport'
-import { initializePassport } from './config/passport.config.js'
+import initializePassport from './config/passport.config.js'
 
-mongoose.connect('mongodb://localhost:27017/ecommerce')
-  .then(() => console.log('Conectado a MongoDB'))
-  .catch(err => console.error('Error al conectar a MongoDB:', err))
+dotenv.config()
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -24,6 +24,10 @@ const __dirname = path.dirname(__filename)
 const app = express()
 const httpServer = createServer(app)
 const io = new Server(httpServer)
+
+mongoose.connect(process.env.MONGO_URL)
+  .then(() => console.log('Conectado a MongoDB'))
+  .catch(err => console.error('Error al conectar a MongoDB:', err))
 
 app.engine('handlebars', engine())
 app.set('view engine', 'handlebars')
@@ -34,19 +38,16 @@ app.use(express.urlencoded({ extended: true }))
 app.use(express.static(path.join(__dirname, 'public')))
 app.use(cookieParser())
 
-const JWT_SECRET = process.env.JWT_SECRET || 'devSecret'
-
-initializePassport(JWT_SECRET)
+initializePassport(process.env.JWT_SECRET)
 app.use(passport.initialize())
 
 app.use('/api/products', productsRouter)
 app.use('/api/carts', cartsRouter)
-app.use('/api/sessions', sessionRouterFactory(JWT_SECRET))
+app.use('/api/sessions', sessionRouterFactory(process.env.JWT_SECRET))
 app.use('/', viewsRouter)
 
 io.on('connection', (socket) => {
   console.log('Nuevo cliente conectado')
-
   socket.on('newProduct', async (data) => {
     try {
       await Product.create(data)
@@ -58,7 +59,7 @@ io.on('connection', (socket) => {
   })
 })
 
-const PORT = 8080
+const PORT = process.env.PORT || 8080
 httpServer.listen(PORT, () => {
   console.log(`Servidor funcionando en http://localhost:${PORT}`)
 })

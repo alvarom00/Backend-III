@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import passport from 'passport'
 import jwt from 'jsonwebtoken'
+import UserDTO from '../dto/UserDTO.js'
 
 const router = Router()
 
@@ -45,7 +46,8 @@ export default (jwtSecret) => {
     '/current',
     passport.authenticate('current', { session: false }),
     (req, res) => {
-      res.send({ status: 'success', payload: req.user })
+      const dto = new UserDTO(req.user)
+      res.send({ status: 'success', payload: dto })
     }
   )
 

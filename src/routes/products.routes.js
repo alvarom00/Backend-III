@@ -1,22 +1,21 @@
 import { Router } from 'express'
-import Product from '../models/Product.js'
+import ProductDAO from '../dao/ProductDAO.js'
+import ProductRepository from '../repositories/ProductRepository.js'
+import { ensureAuth, authorize } from '../middlewares/auth.js'
 
 const router = Router()
+const repo = new ProductRepository(new ProductDAO())
 
-// GET /api/products?limit=&page=&sort=&query=
 router.get('/', async (req, res) => {
   try {
     const { limit = 3, page = 1, sort, query } = req.query
-
     const options = {
       limit: parseInt(limit),
       page: parseInt(page),
       sort: sort === 'asc' ? { price: 1 } : sort === 'desc' ? { price: -1 } : undefined
     }
-
     const filter = query ? { category: query } : {}
-
-    const result = await Product.paginate(filter, options)
+    const result = await repo.paginate(filter, options)
 
     res.json({
       status: 'success',
@@ -35,52 +34,41 @@ router.get('/', async (req, res) => {
   }
 })
 
-
-// GET /api/products/:pid
 router.get('/:pid', async (req, res) => {
   try {
-    const product = await Product.findById(req.params.pid)
-    if (!product) {
-      return res.status(404).json({ status: 'error', message: 'Producto no encontrado' })
-    }
+    const product = await repo.get(req.params.pid)
+    if (!product) return res.status(404).json({ status: 'error', message: 'Producto no encontrado' })
     res.json({ status: 'success', payload: product })
-  } catch (err) {
+  } catch {
     res.status(400).json({ status: 'error', message: 'ID inválido' })
   }
 })
 
-// POST /api/products
-router.post('/', async (req, res) => {
+router.post('/', ensureAuth, authorize('admin'), async (req, res) => {
   try {
-    const product = await Product.create(req.body)
+    const product = await repo.create(req.body)
     res.status(201).json({ status: 'success', payload: product })
   } catch (err) {
     res.status(400).json({ status: 'error', message: err.message })
   }
 })
 
-// PUT /api/products/:pid
-router.put('/:pid', async (req, res) => {
+router.put('/:pid', ensureAuth, authorize('admin'), async (req, res) => {
   try {
-    const product = await Product.findByIdAndUpdate(req.params.pid, req.body, { new: true })
-    if (!product) {
-      return res.status(404).json({ status: 'error', message: 'Producto no encontrado' })
-    }
+    const product = await repo.update(req.params.pid, req.body)
+    if (!product) return res.status(404).json({ status: 'error', message: 'Producto no encontrado' })
     res.json({ status: 'success', payload: product })
-  } catch (err) {
+  } catch {
     res.status(400).json({ status: 'error', message: 'ID inválido' })
   }
 })
 
-// DELETE /api/products/:pid
-router.delete('/:pid', async (req, res) => {
+router.delete('/:pid', ensureAuth, authorize('admin'), async (req, res) => {
   try {
-    const result = await Product.findByIdAndDelete(req.params.pid)
-    if (!result) {
-      return res.status(404).json({ status: 'error', message: 'Producto no encontrado' })
-    }
+    const result = await repo.delete(req.params.pid)
+    if (!result) return res.status(404).json({ status: 'error', message: 'Producto no encontrado' })
     res.json({ status: 'success', message: 'Producto eliminado' })
-  } catch (err) {
+  } catch {
     res.status(400).json({ status: 'error', message: 'ID inválido' })
   }
 })

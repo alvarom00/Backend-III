@@ -14,7 +14,7 @@ const cookieExtractor = (req) => {
   return token
 }
 
-export const initializePassport = (jwtSecret) => {
+export default function initializePassport(jwtSecret) {
   passport.use(
     'register',
     new LocalStrategy(
