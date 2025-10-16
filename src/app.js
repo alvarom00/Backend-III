@@ -9,6 +9,7 @@ import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser'
 import passport from 'passport'
 
+import mocksRouter from './routes/mocks.routes.js'
 import productsRouter from './routes/products.routes.js'
 import cartsRouter from './routes/carts.routes.js'
 import viewsRouter from './routes/views.routes.js'
@@ -44,6 +45,8 @@ app.use(passport.initialize())
 app.use('/api/products', productsRouter)
 app.use('/api/carts', cartsRouter)
 app.use('/api/sessions', sessionRouterFactory(process.env.JWT_SECRET))
+app.use('/api/mocks', mocksRouter)
+
 app.use('/', viewsRouter)
 
 io.on('connection', (socket) => {
