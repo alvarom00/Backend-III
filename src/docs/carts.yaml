@@ -1,0 +1,110 @@
+tags:
+  - name: Carts
+    description: Endpoints para gestión de carritos
+
+paths:
+  /api/carts:
+    post:
+      tags:
+        - Carts
+      summary: Crear un carrito vacío
+      responses:
+        "201":
+          description: Carrito creado
+
+  /api/carts/{cid}:
+    get:
+      tags:
+        - Carts
+      summary: Obtener un carrito por ID
+      parameters:
+        - in: path
+          name: cid
+          required: true
+      responses:
+        "200":
+          description: Carrito encontrado
+
+    put:
+      tags:
+        - Carts
+      summary: Reemplazar todos los productos del carrito
+      parameters:
+        - in: path
+          name: cid
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                products:
+                  type: array
+      responses:
+        "200":
+          description: Carrito actualizado
+
+  /api/carts/{cid}/product/{pid}:
+    post:
+      tags:
+        - Carts
+      summary: Agregar un producto al carrito
+      parameters:
+        - in: path
+          name: cid
+          required: true
+        - in: path
+          name: pid
+          required: true
+      responses:
+        "200":
+          description: Producto agregado al carrito
+
+    put:
+      tags:
+        - Carts
+      summary: Actualizar cantidad de un producto
+      parameters:
+        - in: path
+          name: cid
+          required: true
+        - in: path
+          name: pid
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: number
+      responses:
+        "200":
+          description: Cantidad actualizada
+
+    delete:
+      tags:
+        - Carts
+      summary: Eliminar un producto del carrito
+      parameters:
+        - in: path
+          name: cid
+          required: true
+        - in: path
+          name: pid
+          required: true
+      responses:
+        "200":
+          description: Producto eliminado
+
+  /api/carts/{cid}/purchase:
+    post:
+      tags:
+        - Carts
+      summary: Finalizar compra y generar ticket
+      responses:
+        "200":
+          description: Compra realizada

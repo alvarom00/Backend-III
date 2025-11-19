@@ -1,0 +1,89 @@
+tags:
+  - name: Products
+    description: Endpoints para gestión de productos
+
+paths:
+  /api/products:
+    get:
+      tags:
+        - Products
+      summary: Obtener productos paginados
+      responses:
+        "200":
+          description: Lista paginada de productos
+
+    post:
+      tags:
+        - Products
+      summary: Crear un nuevo producto
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                price:
+                  type: number
+                stock:
+                  type: number
+                category:
+                  type: string
+      responses:
+        "201":
+          description: Producto creado exitosamente
+
+  /api/products/{pid}:
+    get:
+      tags:
+        - Products
+      summary: Obtener un producto por id
+      parameters:
+        - in: path
+          name: pid
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Producto encontrado
+
+    put:
+      tags:
+        - Products
+      summary: Actualizar un producto
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: pid
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Producto actualizado
+
+    delete:
+      tags:
+        - Products
+      summary: Eliminar un producto
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: pid
+          required: true
+      responses:
+        "200":
+          description: Producto eliminado

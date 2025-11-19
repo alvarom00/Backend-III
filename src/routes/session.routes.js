@@ -3,8 +3,6 @@ import passport from 'passport'
 import jwt from 'jsonwebtoken'
 import UserDTO from '../dto/UserDTO.js'
 
-const router = Router()
-
 const buildUserDTO = (user) => ({
   _id: user._id,
   first_name: user.first_name,
@@ -15,12 +13,17 @@ const buildUserDTO = (user) => ({
   cartId: user.cartId
 })
 
-export default (jwtSecret) => {
+export default function sessionRouterFactory(jwtSecret) {
+  // 🔥 CREAR EL ROUTER AQUÍ, NO AFUERA 🔥
+  const router = Router()
+
   router.post(
     '/register',
     passport.authenticate('register', { session: false }),
     (req, res) => {
-      res.status(201).send({ status: 'success', payload: buildUserDTO(req.user) })
+      res
+        .status(201)
+        .send({ status: 'success', payload: buildUserDTO(req.user) })
     }
   )
 
@@ -29,7 +32,9 @@ export default (jwtSecret) => {
     passport.authenticate('login', { session: false }),
     (req, res) => {
       const userDTO = buildUserDTO(req.user)
-      const token = jwt.sign({ user: userDTO }, jwtSecret, { expiresIn: '1d' })
+      const token = jwt.sign({ user: userDTO }, jwtSecret, {
+        expiresIn: '1d'
+      })
 
       res
         .cookie('jwt', token, {

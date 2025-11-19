@@ -1,0 +1,77 @@
+tags:
+  - name: Sessions
+    description: Endpoints de autenticación
+
+paths:
+  /api/sessions/register:
+    post:
+      tags:
+        - Sessions
+      summary: Registrar un usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                email:
+                  type: string
+                age:
+                  type: number
+                password:
+                  type: string
+      responses:
+        "201":
+          description: Usuario registrado
+
+  /api/sessions/login:
+    post:
+      tags:
+        - Sessions
+      summary: Iniciar sesión
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Login exitoso (devuelve cookie JWT)
+
+  /api/sessions/current:
+    get:
+      tags:
+        - Sessions
+      summary: Obtener el usuario logueado
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Usuario actual
+
+  /api/sessions/logout:
+    post:
+      tags:
+        - Sessions
+      summary: Cerrar sesión
+      responses:
+        "200":
+          description: Sesión cerrada
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: jwt
